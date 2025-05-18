@@ -20,27 +20,10 @@ import com.salescontrol.domain.User;
 import com.salescontrol.enuns.Category;
 import com.salescontrol.enuns.UserType;
 
-/**
- * Classe para a tela de relatório de vendas.
- * <p>
- * Esta classe estende JFrame e fornece a interface gráfica para visualização e
- * manipulação de relatórios de vendas. Permite filtrar vendas por data, nome do
- * produto e categoria, e exportar os dados filtrados para um arquivo CSV.
- * </p>
- */
 public class SalesReport extends javax.swing.JFrame {
 
-    /**
-     * Usuário atual que está utilizando a tela de relatório de vendas.
-     */
     private final User currentUser;
 
-    /**
-     * Construtor para inicializar a tela de registro de venda com o usuário
-     * atual.
-     *
-     * @param user o usuário atual.
-     */
     public SalesReport(User user) {
         this.currentUser = user;
         initComponents();
@@ -293,16 +276,6 @@ public class SalesReport extends javax.swing.JFrame {
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
-    /**
-     * Ação do botão de filtro.
-     * <p>
-     * Filtra as vendas com base nas datas fornecidas, nome do produto e
-     * categoria. Exibe uma mensagem de erro se as datas forem inválidas ou se a
-     * data inicial for posterior à data final.
-     * </p>
-     *
-     * @param evt o evento de ação.
-     */
     private void btnFilterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnFilterActionPerformed
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
         dateFormat.setLenient(false);
@@ -368,15 +341,6 @@ public class SalesReport extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_btnFilterActionPerformed
 
-    /**
-     * Ação do botão de exportação.
-     * <p>
-     * Exporta os dados da tabela de vendas filtradas para um arquivo CSV. Exibe
-     * uma mensagem de erro se não houver dados para exportar.
-     * </p>
-     *
-     * @param evt o evento de ação.
-     */
     private void btnExportActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExportActionPerformed
         DefaultTableModel reportTableModel = (DefaultTableModel) tblOfProductsSold.getModel();
 
@@ -413,42 +377,18 @@ public class SalesReport extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_btnExportActionPerformed
 
-    /**
-     * Ação do item de menu para editar um produto.
-     * <p>
-     * Abre a tela de edição de produto.
-     * </p>
-     *
-     * @param evt o evento de ação.
-     */
     private void itEditProductActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itEditProductActionPerformed
         EditProduct editProduct = new EditProduct(currentUser);
         editProduct.setVisible(true);
         this.setVisible(false);
     }//GEN-LAST:event_itEditProductActionPerformed
 
-    /**
-     * Ação do item de menu para registrar uma venda.
-     * <p>
-     * Abre a tela de registro de venda.
-     * </p>
-     *
-     * @param evt o evento de ação.
-     */
     private void itRegisterSaleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itRegisterSaleActionPerformed
         RegisterSale saleRegistration = new RegisterSale(currentUser);
         saleRegistration.setVisible(true);
         this.setVisible(false);
     }//GEN-LAST:event_itRegisterSaleActionPerformed
 
-    /**
-     * Ação do item de menu para registrar um produto.
-     * <p>
-     * Abre a tela de registro de produto.
-     * </p>
-     *
-     * @param evt o evento de ação.
-     */
     private void itRegistrationProductActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itRegistrationProductActionPerformed
         java.awt.EventQueue.invokeLater(() -> {
             new RegisterProduct(currentUser).setVisible(true);
@@ -456,14 +396,6 @@ public class SalesReport extends javax.swing.JFrame {
         this.setVisible(false);
     }//GEN-LAST:event_itRegistrationProductActionPerformed
 
-    /**
-     * Ação do item de menu para sair.
-     * <p>
-     * Abre uma caixa de diálogo de confirmação de logout.
-     * </p>
-     *
-     * @param evt o evento de ação.
-     */
     private void itLeaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itLeaveActionPerformed
         UIManager.put("OptionPane.yesButtonText", "Sim");
         UIManager.put("OptionPane.noButtonText", "Não");
@@ -477,28 +409,11 @@ public class SalesReport extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_itLeaveActionPerformed
 
-    /**
-     * Ação do botão para exibir todas as vendas.
-     * <p>
-     * Carrega todos os dados de vendas e os exibe na tabela.
-     * </p>
-     *
-     * @param evt o evento de ação.
-     */
     private void btnShowAllActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnShowAllActionPerformed
         loadSalesData();
     }//GEN-LAST:event_btnShowAllActionPerformed
 
-    /**
-     * Ponto de entrada principal da aplicação.
-     *
-     * @param args argumentos da linha de comando.
-     */
     public static void main(String args[]) {
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
                 if ("Nimbus".equals(info.getName())) {
@@ -509,9 +424,7 @@ public class SalesReport extends javax.swing.JFrame {
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
             java.util.logging.Logger.getLogger(SalesReport.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
-        //</editor-fold>
-        //</editor-fold>
-
+        
         java.awt.EventQueue.invokeLater(() -> {
             new SalesReport(new User()).setVisible(true);
         });
@@ -540,15 +453,6 @@ public class SalesReport extends javax.swing.JFrame {
     private javax.swing.JTextField txtToDate;
     // End of variables declaration//GEN-END:variables
 
-    /**
-     * Obtém as traduções das categorias de produto.
-     * <p>
-     * Este método retorna uma lista de descrições de todas as categorias de
-     * produto, incluindo uma opção para todas as categorias.
-     * </p>
-     *
-     * @return um array de Strings com as traduções das categorias de produto.
-     */
     private static String[] getCategoryTranslations() {
         Category[] unitOfMeasure = Category.values();
         String[] descriptions = new String[unitOfMeasure.length + 1];
@@ -559,13 +463,6 @@ public class SalesReport extends javax.swing.JFrame {
         return descriptions;
     }
 
-    /**
-     * Carrega os dados de vendas na tabela.
-     * <p>
-     * Este método obtém todas as vendas e preenche a tabela com os dados. Exibe
-     * uma mensagem se nenhuma venda for encontrada.
-     * </p>
-     */
     private void loadSalesData() {
         DefaultTableModel model = (DefaultTableModel) tblOfProductsSold.getModel();
         model.setRowCount(0);
@@ -601,12 +498,6 @@ public class SalesReport extends javax.swing.JFrame {
         }
     }
 
-    /**
-     * Define as permissões de acesso aos botões com base no tipo de usuário.
-     * <p>
-     * Este método desabilita certos botões para usuários do tipo empregado.
-     * </p>
-     */
     private void setPermissions() {
         if (currentUser.getUserType() == UserType.EMPLOYEE) {
             itEditProduct.setEnabled(false);

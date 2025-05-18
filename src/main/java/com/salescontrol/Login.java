@@ -5,19 +5,8 @@ import com.salescontrol.domain.User;
 import com.salescontrol.utils.Criptografia;
 import javax.swing.JOptionPane;
 
-/**
- * Classe para a tela de login da aplicação.
- * <p>
- * Esta classe estende JFrame e fornece a interface gráfica para o login na
- * aplicação. Permite que os usuários entrem com suas credenciais e acessem o
- * menu principal ou desliguem a aplicação.
- * </p>
- */
 public class Login extends javax.swing.JFrame {
 
-    /**
-     * Construtor para inicializar a tela de login.
-     */
     public Login() {
         initComponents();
     }
@@ -170,15 +159,6 @@ public class Login extends javax.swing.JFrame {
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
-    /**
-     * Ação do botão de entrar.
-     * <p>
-     * Verifica as credenciais do usuário e, se válidas, exibe o menu principal.
-     * Caso contrário, exibe uma mensagem de erro.
-     * </p>
-     *
-     * @param evt o evento de clique do botão.
-     */
     private void btnEnterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEnterActionPerformed
         String login = txtUsername.getText().trim();
         String password = Criptografia.getMD5(new String(txtPassword.getPassword()));
@@ -196,23 +176,10 @@ public class Login extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_btnEnterActionPerformed
 
-    /**
-     * Ação do botão de desligar.
-     * <p>
-     * Encerra a aplicação.
-     * </p>
-     *
-     * @param evt o evento de clique do botão.
-     */
     private void btnPowerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPowerActionPerformed
         System.exit(0);
     }//GEN-LAST:event_btnPowerActionPerformed
 
-    /**
-     * Método principal para inicializar a aplicação.
-     *
-     * @param args os argumentos da linha de comando.
-     */
     public static void main(String args[]) {
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
@@ -225,7 +192,6 @@ public class Login extends javax.swing.JFrame {
             java.util.logging.Logger.getLogger(Login.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
 
-        /* Cria e exibe a tela de login */
         java.awt.EventQueue.invokeLater(() -> {
             new Login().setVisible(true);
         });

@@ -14,37 +14,17 @@ import com.salescontrol.domain.SaleProduct;
 import com.salescontrol.domain.User;
 import com.salescontrol.enuns.UserType;
 import com.salescontrol.utils.DataManager;
+import java.awt.HeadlessException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import javax.swing.SwingUtilities;
 
-/**
- * Classe para a tela de registro de venda.
- * <p>
- * Esta classe estende JFrame e fornece a interface gráfica para o registro de
- * vendas. Permite adicionar produtos ao carrinho, calcular o valor total da
- * venda e finalizar a venda. Também permite navegar para outras telas como
- * registro de produto, edição de produto e relatório de vendas.
- * </p>
- */
 public class RegisterSale extends javax.swing.JFrame {
 
-    /**
-     * Mapa de IDs de produtos e suas quantidades.
-     */
     private Map<Integer, Integer> productIdMap = new HashMap<>();
-    /**
-     * Usuário atual que está utilizando a tela de registro de venda.
-     */
     private final User currentUser;
 
-    /**
-     * Construtor para inicializar a tela de registro de venda com o usuário
-     * atual.
-     *
-     * @param user o usuário atual.
-     */
     public RegisterSale(User user) {
         this.currentUser = user;
         initComponents();
@@ -336,14 +316,6 @@ public class RegisterSale extends javax.swing.JFrame {
     setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
-    /**
-     * Ação do item de menu para registrar um produto.
-     * <p>
-     * Abre a tela de registro de produto.
-     * </p>
-     *
-     * @param evt o evento de ação.
-     */
     private void itRegisterProductActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itRegisterProductActionPerformed
         java.awt.EventQueue.invokeLater(() -> {
             new RegisterProduct(currentUser).setVisible(true);
@@ -351,28 +323,12 @@ public class RegisterSale extends javax.swing.JFrame {
         this.setVisible(false);
     }//GEN-LAST:event_itRegisterProductActionPerformed
 
-    /**
-     * Ação do item de menu para editar um produto.
-     * <p>
-     * Abre a tela de edição de produto.
-     * </p>
-     *
-     * @param evt o evento de ação.
-     */
     private void itEditProductActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itEditProductActionPerformed
         EditProduct editProductScreen = new EditProduct(currentUser);
         editProductScreen.setVisible(true);
         this.setVisible(false);
     }//GEN-LAST:event_itEditProductActionPerformed
 
-    /**
-     * Ação do item de menu para visualizar o relatório de vendas.
-     * <p>
-     * Abre a tela de relatório de vendas.
-     * </p>
-     *
-     * @param evt o evento de ação.
-     */
     private void itSalesReportActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itSalesReportActionPerformed
         java.awt.EventQueue.invokeLater(() -> {
             new SalesReport(currentUser).setVisible(true);
@@ -380,14 +336,6 @@ public class RegisterSale extends javax.swing.JFrame {
         this.setVisible(false);
     }//GEN-LAST:event_itSalesReportActionPerformed
 
-    /**
-     * Ação do item de menu para sair.
-     * <p>
-     * Abre uma caixa de diálogo de confirmação de logout.
-     * </p>
-     *
-     * @param evt o evento de ação.
-     */
     private void itLeaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itLeaveActionPerformed
         UIManager.put("OptionPane.yesButtonText", "Sim");
         UIManager.put("OptionPane.noButtonText", "Não");
@@ -401,15 +349,6 @@ public class RegisterSale extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_itLeaveActionPerformed
 
-    /**
-     * Ação do botão para adicionar produto ao carrinho.
-     * <p>
-     * Adiciona o produto selecionado ao carrinho, atualiza a quantidade no
-     * banco de dados e exibe uma mensagem de confirmação.
-     * </p>
-     *
-     * @param evt o evento de ação.
-     */
     private void btnAddProductToCartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddProductToCartActionPerformed
         int[] selectedRows = tblProducts.getSelectedRows();
         if (selectedRows.length == 0) {
@@ -470,22 +409,11 @@ public class RegisterSale extends javax.swing.JFrame {
             }
         } catch (ClassCastException e) {
             System.out.println("Erro de ClassCastException ao obter o ID do produto: " + e.getMessage());
-            e.printStackTrace();
-        } catch (Exception e) {
+        } catch (HeadlessException | NumberFormatException e) {
             System.out.println("Erro ao adicionar produto ao carrinho: " + e.getMessage());
-            e.printStackTrace();
         }
     }//GEN-LAST:event_btnAddProductToCartActionPerformed
 
-    /**
-     * Ação do botão para finalizar a venda.
-     * <p>
-     * Finaliza a venda, salvando os produtos vendidos no banco de dados e
-     * exibindo uma mensagem de confirmação.
-     * </p>
-     *
-     * @param evt o evento de ação.
-     */
     private void btnFinalizeSaleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnFinalizeSaleActionPerformed
         DefaultTableModel cartModel = (DefaultTableModel) tblCart.getModel();
         if (cartModel.getRowCount() == 0) {
@@ -539,15 +467,6 @@ public class RegisterSale extends javax.swing.JFrame {
         JOptionPane.showMessageDialog(this, "Venda finalizada com sucesso!");
     }//GEN-LAST:event_btnFinalizeSaleActionPerformed
 
-    /**
-     * Ação do botão para limpar o carrinho.
-     * <p>
-     * Limpa todos os produtos do carrinho e atualiza as quantidades no banco de
-     * dados.
-     * </p>
-     *
-     * @param evt o evento de ação.
-     */
     private void btnClearCartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnClearCartActionPerformed
         DefaultTableModel cartModel = (DefaultTableModel) tblCart.getModel();
         ProductDao productDao = new ProductDao();
@@ -571,15 +490,6 @@ public class RegisterSale extends javax.swing.JFrame {
         JOptionPane.showMessageDialog(this, "Carrinho limpo!");
     }//GEN-LAST:event_btnClearCartActionPerformed
 
-    /**
-     * Ação do botão para remover o item selecionado do carrinho.
-     * <p>
-     * Remove o produto selecionado do carrinho e atualiza a quantidade no banco
-     * de dados.
-     * </p>
-     *
-     * @param evt o evento de ação.
-     */
     private void btnRemoveSelectedItemFromCartTableActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRemoveSelectedItemFromCartTableActionPerformed
         int selectedRow = tblCart.getSelectedRow();
         if (selectedRow == -1) {
@@ -608,14 +518,6 @@ public class RegisterSale extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_btnRemoveSelectedItemFromCartTableActionPerformed
 
-    /**
-     * Ação do botão para calcular o valor total do carrinho.
-     * <p>
-     * Calcula o valor total dos produtos no carrinho e exibe o resultado.
-     * </p>
-     *
-     * @param evt o evento de ação.
-     */
     private void btnCalculateTotalActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCalculateTotalActionPerformed
         DefaultTableModel cartModel = (DefaultTableModel) tblCart.getModel();
         double total = 0.0;
@@ -631,16 +533,7 @@ public class RegisterSale extends javax.swing.JFrame {
         lblTotalCartValue.setText("Valor Total: R$ " + String.format("%.2f", total));
     }//GEN-LAST:event_btnCalculateTotalActionPerformed
 
-    /**
-     * Ponto de entrada principal da aplicação.
-     *
-     * @param args argumentos da linha de comando.
-     */
     public static void main(String args[]) {
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
                 if ("Nimbus".equals(info.getName())) {
@@ -651,9 +544,7 @@ public class RegisterSale extends javax.swing.JFrame {
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
             java.util.logging.Logger.getLogger(RegisterSale.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
-        //</editor-fold>
-        //</editor-fold>
-
+        
         java.awt.EventQueue.invokeLater(() -> {
             new RegisterSale(new User()).setVisible(true);
         });
@@ -683,12 +574,6 @@ public class RegisterSale extends javax.swing.JFrame {
     private javax.swing.JTextField txtProductQuantity;
     // End of variables declaration//GEN-END:variables
 
-    /**
-     * Atualiza a tabela de produtos.
-     * <p>
-     * Carrega os dados dos produtos do banco de dados e os exibe na tabela.
-     * </p>
-     */
     public void updateProductTable() {
         DefaultTableModel model = (DefaultTableModel) tblProducts.getModel();
         model.setRowCount(0);
@@ -738,14 +623,6 @@ public class RegisterSale extends javax.swing.JFrame {
         }
     }
 
-    /**
-     * Define as permissões de acesso aos itens do menu com base no tipo de
-     * usuário.
-     * <p>
-     * Este método desabilita certos itens do menu para usuários do tipo
-     * empregado.
-     * </p>
-     */
     private void setPermissions() {
         if (currentUser.getUserType() == UserType.EMPLOYEE) {
             itRegisterProduct.setEnabled(false);
@@ -754,13 +631,6 @@ public class RegisterSale extends javax.swing.JFrame {
         }
     }
 
-    /**
-     * Carrega a tabela de produtos.
-     * <p>
-     * Este método obtém todos os produtos do banco de dados e atualiza a tabela
-     * de produtos.
-     * </p>
-     */
     private void loadProductTable() {
         ProductDao productDao = new ProductDao();
         List<Product> productList = productDao.getAllProducts();
