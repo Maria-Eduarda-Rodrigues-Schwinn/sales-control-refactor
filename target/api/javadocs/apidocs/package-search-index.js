@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"com.salescontrol"},{"l":"com.salescontrol.data"},{"l":"com.salescontrol.data.product"},{"l":"com.salescontrol.data.sale"},{"l":"com.salescontrol.data.user"},{"l":"com.salescontrol.domain"},{"l":"com.salescontrol.enuns"},{"l":"com.salescontrol.utils"}];updateSearchResults();
