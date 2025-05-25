@@ -1,9 +1,5 @@
 package com.salescontrol.ui;
 
-import com.salescontrol.ui.RegisterSale;
-import com.salescontrol.ui.RegisterProduct;
-import com.salescontrol.ui.Login;
-import com.salescontrol.ui.EditProduct;
 import com.salescontrol.data.sale.SaleDao;
 import java.io.File;
 import java.io.FileWriter;
@@ -23,10 +19,12 @@ import com.salescontrol.domain.SaleProduct;
 import com.salescontrol.domain.User;
 import com.salescontrol.enuns.Category;
 import com.salescontrol.enuns.UserType;
+import com.salescontrol.service.SaleService;
 
 public class SalesReport extends javax.swing.JFrame {
 
     private final User currentUser;
+    private final SaleService saleService = new SaleService();
 
     public SalesReport(User user) {
         this.currentUser = user;
@@ -283,6 +281,7 @@ public class SalesReport extends javax.swing.JFrame {
     private void btnFilterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnFilterActionPerformed
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
         dateFormat.setLenient(false);
+
         final String fromDateString = txtFromDate.getText().trim();
         final String toDateString = txtToDate.getText().trim();
         final String searchedProductName = txtSearchedProductName.getText().trim().toLowerCase();
@@ -295,32 +294,22 @@ public class SalesReport extends javax.swing.JFrame {
             try {
                 fromDate = dateFormat.parse(fromDateString);
                 toDate = dateFormat.parse(toDateString);
-
                 if (fromDate.after(toDate)) {
-                    JOptionPane.showMessageDialog(this, "A data inicial deve ser antes da data final.", "Erro de Data", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "A data inicial deve ser antes da data final.",
+                            "Erro de Data", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
             } catch (ParseException e) {
-                JOptionPane.showMessageDialog(this, "Formato de data inválido. Use o formato dd/MM/yyyy.", "Erro de Formato", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Formato de data inválido. Use o formato dd/MM/yyyy.",
+                        "Erro de Formato", JOptionPane.ERROR_MESSAGE);
                 return;
             }
         }
 
-        final Date finalFromDate = fromDate;
-        final Date finalToDate = toDate;
+        List<Sale> filteredSales = saleService.filterSales(fromDate, toDate, searchedProductName, selectedCategory);
 
         DefaultTableModel model = (DefaultTableModel) tblOfProductsSold.getModel();
         model.setRowCount(0);
-
-        SaleDao saleDao = new SaleDao();
-        List<Sale> filteredSales = saleDao.getAllSales().stream()
-                .filter(sale -> (finalFromDate == null || !sale.getSaleDate().before(finalFromDate))
-                && (finalToDate == null || !sale.getSaleDate().after(finalToDate))
-                && (selectedCategory.equals("Todas") || sale.getProductsSold().stream()
-                .anyMatch(sp -> sp.getProduct().getCategory().getTranslation().equals(selectedCategory)))
-                && (searchedProductName.isEmpty() || sale.getProductsSold().stream()
-                .anyMatch(sp -> sp.getProduct().getName().toLowerCase().contains(searchedProductName))))
-                .collect(Collectors.toList());
 
         for (Sale sale : filteredSales) {
             for (SaleProduct saleProduct : sale.getProductsSold()) {
@@ -341,7 +330,8 @@ public class SalesReport extends javax.swing.JFrame {
         }
 
         if (model.getRowCount() == 0) {
-            JOptionPane.showMessageDialog(this, "Nenhuma venda encontrada para os critérios especificados.", "Sem Resultados", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Nenhuma venda encontrada para os critérios especificados.",
+                    "Sem Resultados", JOptionPane.INFORMATION_MESSAGE);
         }
     }//GEN-LAST:event_btnFilterActionPerformed
 
@@ -357,12 +347,12 @@ public class SalesReport extends javax.swing.JFrame {
         String timestamp = sdf.format(new Date());
         String fileName = "relatorios/vendas_" + timestamp + ".csv";
 
-        File directory = new File("relatorios");
+        java.io.File directory = new java.io.File("relatorios");
         if (!directory.exists()) {
             directory.mkdirs();
         }
 
-        try (FileWriter csvWriter = new FileWriter(fileName)) {
+        try (java.io.FileWriter csvWriter = new java.io.FileWriter(fileName)) {
             for (int i = 0; i < reportTableModel.getColumnCount(); i++) {
                 csvWriter.append(reportTableModel.getColumnName(i)).append(",");
             }
@@ -375,9 +365,11 @@ public class SalesReport extends javax.swing.JFrame {
                 csvWriter.append("\n");
             }
 
-            JOptionPane.showMessageDialog(this, "Dados exportados para " + fileName + " com sucesso.", "Exportação Concluída", JOptionPane.INFORMATION_MESSAGE);
-        } catch (IOException ex) {
-            JOptionPane.showMessageDialog(this, "Erro ao exportar dados: " + ex.getMessage(), "Erro de Exportação", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Dados exportados para " + fileName + " com sucesso.",
+                    "Exportação Concluída", JOptionPane.INFORMATION_MESSAGE);
+        } catch (java.io.IOException ex) {
+            JOptionPane.showMessageDialog(this, "Erro ao exportar dados: " + ex.getMessage(),
+                    "Erro de Exportação", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_btnExportActionPerformed
 

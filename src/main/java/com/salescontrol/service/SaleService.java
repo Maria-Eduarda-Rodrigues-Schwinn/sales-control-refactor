@@ -7,6 +7,7 @@ import com.salescontrol.service.CartService.CartItem;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class SaleService {
 
@@ -39,5 +40,33 @@ public class SaleService {
         sale.setTotalValue(total);
 
         saleDao.save(sale, saleProducts);
+    }
+
+    public List<Sale> filterSales(Date fromDate, Date toDate, String searchedProductName, String selectedCategory) {
+        List<Sale> allSales = saleDao.getAllSales();
+
+        return allSales.stream().filter(sale -> {
+            boolean dateCondition = true;
+            if (fromDate != null) {
+                dateCondition = !sale.getSaleDate().before(fromDate); // a data da venda deve ser igual ou depois de fromDate
+            }
+            if (toDate != null) {
+                dateCondition = dateCondition && !sale.getSaleDate().after(toDate); // a data da venda deve ser igual ou antes de toDate
+            }
+
+            boolean categoryCondition = true;
+            if (!"Todas".equalsIgnoreCase(selectedCategory)) {
+                categoryCondition = sale.getProductsSold().stream()
+                        .anyMatch(sp -> sp.getProduct().getCategory().getTranslation().equalsIgnoreCase(selectedCategory));
+            }
+
+            boolean nameCondition = true;
+            if (searchedProductName != null && !searchedProductName.isEmpty()) {
+                nameCondition = sale.getProductsSold().stream()
+                        .anyMatch(sp -> sp.getProduct().getName().toLowerCase().contains(searchedProductName));
+            }
+
+            return dateCondition && categoryCondition && nameCondition;
+        }).collect(Collectors.toList());
     }
 }
