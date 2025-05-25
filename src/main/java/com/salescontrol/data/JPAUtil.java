@@ -23,7 +23,7 @@ public class JPAUtil {
 
         return em;
     }
-    
+
     public static void closeEntityManager() {
         if (em != null && em.isOpen()) {
             em.close();
@@ -33,4 +33,3 @@ public class JPAUtil {
         }
     }
 }
-

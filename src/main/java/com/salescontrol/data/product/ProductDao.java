@@ -47,7 +47,7 @@ public class ProductDao {
             em.close();
         }
     }
-    
+
     public boolean delete(int id) {
         EntityManager em = getEntityManager();
         try {
@@ -68,7 +68,7 @@ public class ProductDao {
             em.close();
         }
     }
-    
+
     public List<Product> searchProductsByName(String name) {
         EntityManager em = getEntityManager();
         try {
