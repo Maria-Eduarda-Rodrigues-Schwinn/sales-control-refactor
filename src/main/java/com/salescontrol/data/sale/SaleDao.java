@@ -7,17 +7,15 @@ import com.salescontrol.enuns.Category;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.TypedQuery;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 import org.hibernate.Hibernate;
 import org.hibernate.HibernateException;
+import java.util.Date;
+import java.util.List;
 
 public class SaleDao {
 
-    EntityManager em = JPAUtil.getEntityManager();
-
     public void save(Sale sale) {
+        EntityManager em = JPAUtil.getEntityManager();
         EntityTransaction transaction = em.getTransaction();
         try {
             transaction.begin();
@@ -34,6 +32,7 @@ public class SaleDao {
     }
 
     public void save(Sale sale, List<SaleProduct> saleProducts) {
+        EntityManager em = JPAUtil.getEntityManager();
         EntityTransaction transaction = em.getTransaction();
         try {
             transaction.begin();
@@ -55,7 +54,7 @@ public class SaleDao {
     }
 
     public List<Sale> getAllSales() {
-        List<Sale> sales = new ArrayList<>();
+        List<Sale> sales;
         EntityManager em = JPAUtil.getEntityManager();
         EntityTransaction transaction = em.getTransaction();
         try {
@@ -67,9 +66,10 @@ public class SaleDao {
             }
             transaction.commit();
         } catch (HibernateException e) {
-            if (transaction != null && transaction.isActive()) {
+            if (transaction.isActive()) {
                 transaction.rollback();
             }
+            throw e;
         } finally {
             em.close();
         }
@@ -77,33 +77,27 @@ public class SaleDao {
     }
 
     public List<Sale> filterSalesByDate(Date startDate, Date endDate) {
-        try {
+        try (EntityManager em = JPAUtil.getEntityManager()) {
             return em.createQuery("FROM Sale WHERE saleDate BETWEEN :startDate AND :endDate", Sale.class)
                     .setParameter("startDate", startDate)
                     .setParameter("endDate", endDate)
                     .getResultList();
-        } finally {
-            em.close();
         }
     }
 
     public List<Sale> filterSalesByCategory(Category category) {
-        try {
+        try (EntityManager em = JPAUtil.getEntityManager()) {
             return em.createQuery("SELECT s FROM Sale s JOIN s.productsSold p WHERE p.product.category = :category", Sale.class)
                     .setParameter("category", category)
                     .getResultList();
-        } finally {
-            em.close();
         }
     }
 
     public List<Sale> filterSalesByProductName(String productName) {
-        try {
+        try (EntityManager em = JPAUtil.getEntityManager()) {
             return em.createQuery("SELECT s FROM Sale s JOIN s.productsSold p WHERE p.product.name LIKE :productName", Sale.class)
                     .setParameter("productName", "%" + productName + "%")
                     .getResultList();
-        } finally {
-            em.close();
         }
     }
 }

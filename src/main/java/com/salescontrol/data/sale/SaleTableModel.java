@@ -6,8 +6,7 @@ import javax.swing.table.AbstractTableModel;
 
 public class SaleTableModel extends AbstractTableModel {
 
-    private final List<Sale> sales;
-
+    private List<Sale> sales;
     private final String[] columnNames = {"ID", "Data da Venda", "Valor Total"};
 
     public SaleTableModel(List<Sale> sales) {
@@ -42,5 +41,10 @@ public class SaleTableModel extends AbstractTableModel {
             default ->
                 null;
         };
+    }
+
+    public void setSales(List<Sale> sales) {
+        this.sales = sales;
+        fireTableDataChanged();
     }
 }

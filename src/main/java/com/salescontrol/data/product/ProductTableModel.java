@@ -6,8 +6,7 @@ import javax.swing.table.AbstractTableModel;
 
 public class ProductTableModel extends AbstractTableModel {
 
-    private final List<Product> products;
-
+    private List<Product> products;
     private final String[] columnNames = {"ID", "Nome", "Categoria", "Preço Unitário", "Unidade de Medida", "Quantidade"};
 
     public ProductTableModel(List<Product> products) {
@@ -48,6 +47,11 @@ public class ProductTableModel extends AbstractTableModel {
             default ->
                 null;
         };
+    }
+
+    public void setProducts(List<Product> products) {
+        this.products = products;
+        fireTableDataChanged();
     }
 
     @Override

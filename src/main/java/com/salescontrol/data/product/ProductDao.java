@@ -4,52 +4,42 @@ import com.salescontrol.data.JPAUtil;
 import com.salescontrol.domain.Product;
 import jakarta.persistence.EntityManager;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class ProductDao {
 
-    private EntityManager getEntityManager() {
-        return JPAUtil.getEntityManager();
-    }
-
-    public void save(Product product) {
-        EntityManager em = getEntityManager();
+    private void executeInsideTransaction(Consumer<EntityManager> action) {
+        EntityManager em = JPAUtil.getEntityManager();
         try {
             em.getTransaction().begin();
-            em.persist(product);
+            action.accept(em);
             em.getTransaction().commit();
         } catch (Exception e) {
-            em.getTransaction().rollback();
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
             throw e;
         } finally {
             em.close();
         }
     }
 
+    public void save(Product product) {
+        executeInsideTransaction(em -> em.persist(product));
+    }
+
     public List<Product> getAllProducts() {
-        EntityManager em = getEntityManager();
-        try {
+        try (EntityManager em = JPAUtil.getEntityManager()) {
             return em.createQuery("FROM Product", Product.class).getResultList();
-        } finally {
-            em.close();
         }
     }
 
     public void update(Product product) {
-        EntityManager em = getEntityManager();
-        try {
-            em.getTransaction().begin();
-            em.merge(product);
-            em.getTransaction().commit();
-        } catch (Exception e) {
-            em.getTransaction().rollback();
-            throw e;
-        } finally {
-            em.close();
-        }
+        executeInsideTransaction(em -> em.merge(product));
     }
 
     public boolean delete(int id) {
-        EntityManager em = getEntityManager();
+        EntityManager em = JPAUtil.getEntityManager();
         try {
             em.getTransaction().begin();
             Product product = em.find(Product.class, id);
@@ -62,7 +52,9 @@ public class ProductDao {
                 return false;
             }
         } catch (Exception e) {
-            em.getTransaction().rollback();
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
             throw e;
         } finally {
             em.close();
@@ -70,40 +62,26 @@ public class ProductDao {
     }
 
     public List<Product> searchProductsByName(String name) {
-        EntityManager em = getEntityManager();
-        try {
+        try (EntityManager em = JPAUtil.getEntityManager()) {
             return em.createQuery("FROM Product WHERE name LIKE :name", Product.class)
                     .setParameter("name", "%" + name + "%")
                     .getResultList();
-        } finally {
-            em.close();
         }
     }
 
     public Product getProductById(int id) {
-        EntityManager em = getEntityManager();
-        try {
+        try (EntityManager em = JPAUtil.getEntityManager()) {
             return em.find(Product.class, id);
-        } finally {
-            em.close();
         }
     }
 
     public void updateProductQuantity(int productId, int quantity) {
-        EntityManager em = getEntityManager();
-        try {
-            em.getTransaction().begin();
+        executeInsideTransaction(em -> {
             Product product = em.find(Product.class, productId);
             if (product != null) {
                 product.setQuantity(quantity);
                 em.merge(product);
             }
-            em.getTransaction().commit();
-        } catch (Exception e) {
-            em.getTransaction().rollback();
-            throw e;
-        } finally {
-            em.close();
-        }
+        });
     }
 }
