@@ -2,11 +2,14 @@ package com.salescontrol.ui;
 
 import com.salescontrol.data.user.UserDao;
 import com.salescontrol.domain.User;
+import com.salescontrol.service.UserService;
 import com.salescontrol.utils.Criptografia;
 import java.util.Optional;
 import javax.swing.JOptionPane;
 
 public class Login extends javax.swing.JFrame {
+
+    private final UserService userService = new UserService();
 
     public Login() {
         initComponents();
@@ -164,26 +167,21 @@ public class Login extends javax.swing.JFrame {
         String login = txtUsername.getText().trim();
         String password = Criptografia.getMD5(new String(txtPassword.getPassword()));
 
-        UserDao userDao = new UserDao();
-        Optional<User> userOptional = userDao.authenticate(login, password);
+        Optional<User> userOptional = userService.authenticate(login, password);
 
         if (userOptional.isPresent()) {
             User user = userOptional.get();
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Olá " + user.getName() + ", sua permissão é de " + user.getUserType().getTranslation() + ". Seja bem-vindo!"
-            );
+            JOptionPane.showMessageDialog(this,
+                    "Olá " + user.getName() + ", sua permissão é de "
+                    + user.getUserType().getTranslation() + ". Seja bem-vindo!");
 
-            MainMenu mainMenu = new MainMenu(user);
-            mainMenu.setVisible(true);
+            new MainMenu(user).setVisible(true);
             this.dispose();
         } else {
-            JOptionPane.showMessageDialog(
-                    this,
+            JOptionPane.showMessageDialog(this,
                     "Login ou senha inválidos.",
                     "Erro",
-                    JOptionPane.ERROR_MESSAGE
-            );
+                    JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_btnEnterActionPerformed
 
