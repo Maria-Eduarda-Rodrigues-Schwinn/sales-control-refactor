@@ -1,16 +1,13 @@
 package com.salescontrol.ui;
 
-import com.salescontrol.ui.Login;
-import com.salescontrol.ui.EditProduct;
-import com.salescontrol.data.product.ProductDao;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
-import com.salescontrol.domain.Product;
 import com.salescontrol.domain.User;
 import com.salescontrol.enuns.Category;
 import com.salescontrol.enuns.UnitOfMeasure;
 import com.salescontrol.enuns.UserType;
+import com.salescontrol.service.ProductService;
 import com.salescontrol.utils.ValidationUtils;
 
 public class RegisterProduct extends javax.swing.JFrame {
@@ -321,30 +318,16 @@ public class RegisterProduct extends javax.swing.JFrame {
         }
 
         String selectedCategoryDescription = (String) comboCategoryBox.getSelectedItem();
-        Category category = getCategoryFromDescription(selectedCategoryDescription);
-
         String selectedUnitOfMeasure = (String) comboUnitOfMeasureBox.getSelectedItem();
-        UnitOfMeasure unitOfMeasure = getUnitOfMeasureFromDescription(selectedUnitOfMeasure);
 
         try {
-            ValidationUtils.validateProductInputs(name, selectedCategoryDescription, unitPrice, selectedUnitOfMeasure, quantity);
-        } catch (IllegalArgumentException e) {
-            return;
+            ProductService productService = new ProductService();
+            productService.createProduct(name, selectedCategoryDescription, unitPrice, selectedUnitOfMeasure, quantity);
+            JOptionPane.showMessageDialog(this, "Produto adicionado com sucesso!");
+            btnClearFieldsActionPerformed(evt);
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
         }
-
-        Product product = new Product();
-        product.setName(name);
-        product.setCategory(category);
-        product.setUnitPrice(unitPrice);
-        product.setUnitOfMeasure(unitOfMeasure);
-        product.setQuantity(quantity);
-
-        ProductDao productDao = new ProductDao();
-        productDao.save(product);
-
-        JOptionPane.showMessageDialog(this, "Produto adicionado com sucesso!");
-
-        btnClearFieldsActionPerformed(evt);
     }//GEN-LAST:event_btnAddProductActionPerformed
 
     public static void main(String args[]) {
@@ -396,15 +379,6 @@ public class RegisterProduct extends javax.swing.JFrame {
         return descriptions;
     }
 
-    private Category getCategoryFromDescription(String description) {
-        for (Category category : Category.values()) {
-            if (category.getTranslation().equals(description)) {
-                return category;
-            }
-        }
-        return null;
-    }
-
     private static String[] getUnitOfMeasureDescriptions() {
         UnitOfMeasure[] unitOfMeasure = UnitOfMeasure.values();
         String[] descriptions = new String[unitOfMeasure.length];
@@ -412,15 +386,6 @@ public class RegisterProduct extends javax.swing.JFrame {
             descriptions[i] = unitOfMeasure[i].getTranslation();
         }
         return descriptions;
-    }
-
-    private UnitOfMeasure getUnitOfMeasureFromDescription(String description) {
-        for (UnitOfMeasure unitOfMeasure : UnitOfMeasure.values()) {
-            if (unitOfMeasure.getTranslation().equals(description)) {
-                return unitOfMeasure;
-            }
-        }
-        return null;
     }
 
     private void setPermissions() {

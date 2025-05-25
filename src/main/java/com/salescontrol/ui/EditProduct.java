@@ -1,6 +1,5 @@
 package com.salescontrol.ui;
 
-import com.salescontrol.data.product.ProductDao;
 import com.salescontrol.data.product.ProductTableModel;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
@@ -8,18 +7,20 @@ import javax.swing.table.DefaultTableModel;
 import com.salescontrol.domain.Product;
 import com.salescontrol.domain.User;
 import com.salescontrol.enuns.UserType;
+import com.salescontrol.service.ProductService;
 import java.util.List;
 import javax.swing.SwingUtilities;
+import javax.swing.UnsupportedLookAndFeelException;
 
 public class EditProduct extends javax.swing.JFrame {
 
     private final User currentUser;
+    private final ProductService productService = new ProductService();
 
     public EditProduct(User user) {
         this.currentUser = user;
         initComponents();
         setPermissions();
-
         loadProductTable();
     }
 
@@ -215,17 +216,17 @@ public class EditProduct extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void itRegisterSaleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itRegisterSaleActionPerformed
-        java.awt.EventQueue.invokeLater(() -> {
+        SwingUtilities.invokeLater(() -> {
             new RegisterSale(currentUser).setVisible(true);
+            this.dispose();
         });
-        this.setVisible(false);
     }//GEN-LAST:event_itRegisterSaleActionPerformed
 
     private void itRegisterProductActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itRegisterProductActionPerformed
-        java.awt.EventQueue.invokeLater(() -> {
-            new RegisterProduct(currentUser).setVisible(true);
+        SwingUtilities.invokeLater(() -> {
+            new SalesReport(currentUser).setVisible(true);
+            this.dispose();
         });
-        this.setVisible(false);
     }//GEN-LAST:event_itRegisterProductActionPerformed
 
     private void itSaleReportsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itSaleReportsActionPerformed
@@ -238,13 +239,12 @@ public class EditProduct extends javax.swing.JFrame {
     private void itLeaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itLeaveActionPerformed
         UIManager.put("OptionPane.yesButtonText", "Sim");
         UIManager.put("OptionPane.noButtonText", "Não");
-
         int response = JOptionPane.showConfirmDialog(this, "Deseja sair?", "Logout", JOptionPane.YES_NO_OPTION);
         if (response == JOptionPane.YES_OPTION) {
-            java.awt.EventQueue.invokeLater(() -> {
+            SwingUtilities.invokeLater(() -> {
                 new Login().setVisible(true);
+                this.dispose();
             });
-            this.setVisible(false);
         }
     }//GEN-LAST:event_itLeaveActionPerformed
 
@@ -263,45 +263,18 @@ public class EditProduct extends javax.swing.JFrame {
         String newProductQuantity = JOptionPane.showInputDialog(this, "Nova quantidade do produto:", productQuantity);
 
         if (newProductUnitPrice != null && newProductQuantity != null) {
-            double unitPrice;
-            int quantity;
-
             try {
-                unitPrice = Double.parseDouble(newProductUnitPrice);
-                if (unitPrice <= 0) {
-                    JOptionPane.showMessageDialog(this, "O preço unitário deve ser maior que zero.", "Erro", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-            } catch (NumberFormatException e) {
-                JOptionPane.showMessageDialog(this, "O preço unitário deve ser um número decimal.", "Erro", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
+                double unitPrice = Double.parseDouble(newProductUnitPrice);
+                int quantity = Integer.parseInt(newProductQuantity);
 
-            try {
-                quantity = Integer.parseInt(newProductQuantity);
-                if (quantity <= 0) {
-                    JOptionPane.showMessageDialog(this, "A quantidade deve ser maior que zero.", "Erro", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-            } catch (NumberFormatException e) {
-                JOptionPane.showMessageDialog(this, "A quantidade deve ser um número inteiro.", "Erro", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            ProductDao productDao = new ProductDao();
-            Product product = productDao.getProductById(productId);
-            if (product != null) {
-                product.setUnitPrice(unitPrice);
-                product.setQuantity(quantity);
-                productDao.update(product);
-
-                tblProducts.setValueAt(unitPrice, selectedRow, 3);
-                tblProducts.setValueAt(quantity, selectedRow, 5);
+                productService.updateProduct(productId, unitPrice, quantity);
 
                 JOptionPane.showMessageDialog(this, "Produto atualizado com sucesso!");
                 loadProductTable();
-            } else {
-                JOptionPane.showMessageDialog(this, "Produto não encontrado.", "Erro", JOptionPane.ERROR_MESSAGE);
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "Formato numérico inválido.", "Erro", JOptionPane.ERROR_MESSAGE);
+            } catch (IllegalArgumentException ex) {
+                JOptionPane.showMessageDialog(this, ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
             }
         }
     }//GEN-LAST:event_btnEditSelectedProductActionPerformed
@@ -312,7 +285,6 @@ public class EditProduct extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(this, "Por favor, selecione um produto para excluir.");
             return;
         }
-
         int productId = (int) tblProducts.getValueAt(selectedRow, 0);
 
         UIManager.put("OptionPane.yesButtonText", "Sim");
@@ -320,8 +292,7 @@ public class EditProduct extends javax.swing.JFrame {
         int confirm = JOptionPane.showConfirmDialog(this, "Tem certeza de que deseja excluir o produto?", "Confirmação", JOptionPane.YES_NO_OPTION);
 
         if (confirm == JOptionPane.YES_OPTION) {
-            ProductDao productDao = new ProductDao();
-            boolean deleted = productDao.delete(productId);
+            boolean deleted = productService.deleteProduct(productId);
             if (deleted) {
                 loadProductTable();
                 JOptionPane.showMessageDialog(this, "Produto excluído com sucesso!");
@@ -334,8 +305,7 @@ public class EditProduct extends javax.swing.JFrame {
     private void btnSearchByProductNameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchByProductNameActionPerformed
         String searchName = JOptionPane.showInputDialog(this, "Digite o nome do produto para buscar:");
         if (searchName != null && !searchName.trim().isEmpty()) {
-            ProductDao productDao = new ProductDao();
-            List<Product> productList = productDao.searchProductsByName(searchName.trim());
+            List<Product> productList = productService.searchProductsByName(searchName);
             tblProducts.setModel(new ProductTableModel(productList));
         } else {
             JOptionPane.showMessageDialog(this, "Nome do produto não pode estar vazio.", "Erro", JOptionPane.ERROR_MESSAGE);
@@ -354,11 +324,29 @@ public class EditProduct extends javax.swing.JFrame {
                     break;
                 }
             }
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
+        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException | UnsupportedLookAndFeelException ex) {
             java.util.logging.Logger.getLogger(EditProduct.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
-        java.awt.EventQueue.invokeLater(() -> {
-            new EditProduct(new User()).setVisible(true);
+        SwingUtilities.invokeLater(() -> new EditProduct(new User()).setVisible(true));
+    }
+
+    @Override
+    public void setVisible(boolean b) {
+        super.setVisible(b);
+        loadProductTable();
+    }
+
+    private void setPermissions() {
+        if (currentUser.getUserType() == UserType.EMPLOYEE) {
+            itRegisterProduct.setEnabled(false);
+            itSaleReports.setEnabled(false);
+        }
+    }
+
+    private void loadProductTable() {
+        List<Product> productList = productService.getAllProducts();
+        SwingUtilities.invokeLater(() -> {
+            tblProducts.setModel(new ProductTableModel(productList));
         });
     }
 
@@ -378,47 +366,4 @@ public class EditProduct extends javax.swing.JFrame {
     private javax.swing.JScrollPane scrollPaneProductsTable;
     private javax.swing.JTable tblProducts;
     // End of variables declaration//GEN-END:variables
-
-    public void updateProductTable() {
-        DefaultTableModel model = (DefaultTableModel) tblProducts.getModel();
-        model.setRowCount(0);
-
-        ProductDao productDao = new ProductDao();
-        List<Product> products = productDao.getAllProducts();
-
-        for (Product product : products) {
-            Object[] row = {
-                product.getId(),
-                product.getName(),
-                product.getCategory().getTranslation(),
-                product.getUnitPrice(),
-                product.getUnitOfMeasure().getTranslation(),
-                product.getQuantity()
-            };
-            model.addRow(row);
-        }
-    }
-
-    @Override
-    public void setVisible(boolean b) {
-        super.setVisible(b);
-        updateProductTable();
-    }
-
-    private void setPermissions() {
-        if (currentUser.getUserType() == UserType.EMPLOYEE) {
-            itRegisterProduct.setEnabled(false);
-            itSaleReports.setEnabled(false);
-        }
-    }
-
-    private void loadProductTable() {
-        ProductDao productDao = new ProductDao();
-        List<Product> productList = productDao.getAllProducts();
-
-        SwingUtilities.invokeLater(() -> {
-            ProductTableModel productTableModel = new ProductTableModel(productList);
-            tblProducts.setModel(productTableModel);
-        });
-    }
 }
