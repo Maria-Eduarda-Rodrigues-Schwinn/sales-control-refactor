@@ -1,32 +1,26 @@
 package com.salescontrol.ui;
 
-import com.salescontrol.ui.RegisterProduct;
-import com.salescontrol.ui.Login;
-import com.salescontrol.ui.EditProduct;
-import com.salescontrol.data.product.ProductDao;
 import com.salescontrol.data.product.ProductTableModel;
-import com.salescontrol.data.sale.SaleDao;
-import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 import com.salescontrol.domain.Product;
-import com.salescontrol.domain.Sale;
-import com.salescontrol.domain.SaleProduct;
 import com.salescontrol.domain.User;
 import com.salescontrol.enuns.UserType;
-import com.salescontrol.utils.DataManager;
+import com.salescontrol.service.CartService;
+import com.salescontrol.service.ProductService;
+import com.salescontrol.service.SaleService;
 import java.awt.HeadlessException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import javax.swing.SwingUtilities;
 
 public class RegisterSale extends javax.swing.JFrame {
 
-    private Map<Integer, Integer> productIdMap = new HashMap<>();
     private final User currentUser;
+
+    private final ProductService productService = new ProductService();
+    private final CartService cartService = new CartService();
+    private final SaleService saleService = new SaleService();
 
     public RegisterSale(User user) {
         this.currentUser = user;
@@ -363,8 +357,7 @@ public class RegisterSale extends javax.swing.JFrame {
         }
 
         int selectedRow = selectedRows[0];
-
-        String quantityText = txtProductQuantity.getText();
+        String quantityText = txtProductQuantity.getText().trim();
         txtProductQuantity.setText("");
         if (quantityText.isEmpty() || quantityText.equals("0")) {
             JOptionPane.showMessageDialog(this, "Por favor, insira uma quantidade válida.", "Erro", JOptionPane.ERROR_MESSAGE);
@@ -383,114 +376,47 @@ public class RegisterSale extends javax.swing.JFrame {
             return;
         }
 
+        Object productIdObject = tblProducts.getValueAt(selectedRow, 0);
+        int productId = Integer.parseInt(productIdObject.toString());
+
         try {
-            Object productIdObject = tblProducts.getValueAt(selectedRow, 0);
+            cartService.addProductToCart(productId, quantity);
+            loadProductTable();
+            updateCartTable();
 
-            int productId = Integer.parseInt(productIdObject.toString());
-            ProductDao productDao = new ProductDao();
-            Product product = productDao.getProductById(productId);
-
-            if (product != null) {
-                if (quantity > product.getQuantity()) {
-                    JOptionPane.showMessageDialog(this, "A quantidade inserida é maior do que a quantidade disponível em estoque.", "Erro", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-
-                product.setQuantity(product.getQuantity() - quantity);
-                productDao.update(product);
-
-                DefaultTableModel cartModel = (DefaultTableModel) tblCart.getModel();
-                cartModel.addRow(new Object[]{product.getId(), product.getName(), product.getCategory().getTranslation(), quantity, product.getUnitPrice(), product.getUnitOfMeasure().getTranslation()});
-
-                loadProductTable();
-
-                DataManager.getInstance().addToTemporaryCart(productId, quantity);
-
-                JOptionPane.showMessageDialog(this, "Produto adicionado ao carrinho!");
-            } else {
-                JOptionPane.showMessageDialog(this, "Produto não encontrado.", "Erro", JOptionPane.ERROR_MESSAGE);
-            }
-        } catch (ClassCastException e) {
-            System.out.println("Erro de ClassCastException ao obter o ID do produto: " + e.getMessage());
-        } catch (HeadlessException | NumberFormatException e) {
-            System.out.println("Erro ao adicionar produto ao carrinho: " + e.getMessage());
+            JOptionPane.showMessageDialog(this, "Produto adicionado ao carrinho!");
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_btnAddProductToCartActionPerformed
 
     private void btnFinalizeSaleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnFinalizeSaleActionPerformed
-        DefaultTableModel cartModel = (DefaultTableModel) tblCart.getModel();
-        if (cartModel.getRowCount() == 0) {
+        if (cartService.isCartEmpty()) {
             JOptionPane.showMessageDialog(this, "O carrinho está vazio. Adicione produtos antes de finalizar a venda.");
             return;
         }
 
-        List<SaleProduct> saleProducts = new ArrayList<>();
-        ProductDao productDao = new ProductDao();
-        for (int i = 0; i < cartModel.getRowCount(); i++) {
-            Object productIdObject = cartModel.getValueAt(i, 0);
-            int productId = Integer.parseInt(productIdObject.toString());
-
-            Object quantityObject = cartModel.getValueAt(i, 3);
-            int quantity = Integer.parseInt(quantityObject.toString());
-
-            Object unitPriceObject = cartModel.getValueAt(i, 4);
-            double unitPrice = Double.parseDouble(unitPriceObject.toString());
-
-            Product product = productDao.getProductById(productId);
-
-            SaleProduct saleProduct = new SaleProduct(product, quantity, unitPrice);
-            saleProducts.add(saleProduct);
-        }
-
-        SaleDao saleDao = new SaleDao();
-        Sale sale = new Sale();
-        sale.setSaleDate(new Date());
-
-        double total = 0.0;
-        for (int i = 0; i < cartModel.getRowCount(); i++) {
-            Object quantityObject = cartModel.getValueAt(i, 3);
-            int quantity = Integer.parseInt(quantityObject.toString());
-            Object unitPriceObject = cartModel.getValueAt(i, 4);
-            double unitPrice = Double.parseDouble(unitPriceObject.toString());
-            total += quantity * unitPrice;
-        }
-
-        sale.setTotalValue(total);
-
         try {
-            saleDao.save(sale, saleProducts);
-            System.out.println("Venda salva com sucesso");
-        } catch (Exception e) {
-            System.out.println("Erro ao salvar venda: " + e.getMessage());
+            saleService.finalizeSale(cartService.getCartItems());
+            JOptionPane.showMessageDialog(this, "Venda finalizada com sucesso!");
+
+            cartService.clearTemporaryCartAndRestoreStock();
+            updateCartTable();
+            loadProductTable();
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Erro ao finalizar venda: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
         }
-
-        cartModel.setRowCount(0);
-        loadProductTable();
-
-        JOptionPane.showMessageDialog(this, "Venda finalizada com sucesso!");
     }//GEN-LAST:event_btnFinalizeSaleActionPerformed
 
     private void btnClearCartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnClearCartActionPerformed
-        DefaultTableModel cartModel = (DefaultTableModel) tblCart.getModel();
-        ProductDao productDao = new ProductDao();
-        for (int i = 0; i < cartModel.getRowCount(); i++) {
-            Object productIdObject = cartModel.getValueAt(i, 0);
-            int productId = Integer.parseInt(productIdObject.toString());
-
-            Object quantityObject = cartModel.getValueAt(i, 3);
-            int quantity = Integer.parseInt(quantityObject.toString());
-
-            Product product = productDao.getProductById(productId);
-            if (product != null) {
-                product.setQuantity(product.getQuantity() + quantity);
-                productDao.update(product);
-            }
+        try {
+            cartService.clearTemporaryCartAndRestoreStock();
+            updateCartTable();
+            loadProductTable();
+            JOptionPane.showMessageDialog(this, "Carrinho limpo!");
+        } catch (HeadlessException ex) {
+            JOptionPane.showMessageDialog(this, "Erro ao limpar o carrinho: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
         }
-        cartModel.setRowCount(0);
-
-        loadProductTable();
-
-        JOptionPane.showMessageDialog(this, "Carrinho limpo!");
     }//GEN-LAST:event_btnClearCartActionPerformed
 
     private void btnRemoveSelectedItemFromCartTableActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRemoveSelectedItemFromCartTableActionPerformed
@@ -500,39 +426,23 @@ public class RegisterSale extends javax.swing.JFrame {
             return;
         }
 
-        DefaultTableModel cartModel = (DefaultTableModel) tblCart.getModel();
-        Object productIdObject = cartModel.getValueAt(selectedRow, 0);
+        Object productIdObject = tblCart.getValueAt(selectedRow, 0);
         int productId = Integer.parseInt(productIdObject.toString());
-
-        Object quantityObject = cartModel.getValueAt(selectedRow, 3);
+        Object quantityObject = tblCart.getValueAt(selectedRow, 3);
         int quantity = Integer.parseInt(quantityObject.toString());
 
-        ProductDao productDao = new ProductDao();
-        Product product = productDao.getProductById(productId);
-        if (product != null) {
-            product.setQuantity(product.getQuantity() + quantity);
-            productDao.update(product);
-
-            cartModel.removeRow(selectedRow);
-
+        try {
+            cartService.removeItemFromCart(productId, quantity);
+            updateCartTable();
             loadProductTable();
-
             JOptionPane.showMessageDialog(this, "Produto removido do carrinho!");
+        } catch (HeadlessException ex) {
+            JOptionPane.showMessageDialog(this, "Erro ao remover o item: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_btnRemoveSelectedItemFromCartTableActionPerformed
 
     private void btnCalculateTotalActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCalculateTotalActionPerformed
-        DefaultTableModel cartModel = (DefaultTableModel) tblCart.getModel();
-        double total = 0.0;
-        for (int i = 0; i < cartModel.getRowCount(); i++) {
-            Object quantityObject = cartModel.getValueAt(i, 3);
-            int quantity = Integer.parseInt(quantityObject.toString());
-
-            Object unitPriceObject = cartModel.getValueAt(i, 4);
-            double unitPrice = Double.parseDouble(unitPriceObject.toString());
-
-            total += quantity * unitPrice;
-        }
+        double total = cartService.calculateTotal();
         lblTotalCartValue.setText("Valor Total: R$ " + String.format("%.2f", total));
     }//GEN-LAST:event_btnCalculateTotalActionPerformed
 
@@ -577,52 +487,19 @@ public class RegisterSale extends javax.swing.JFrame {
     private javax.swing.JTextField txtProductQuantity;
     // End of variables declaration//GEN-END:variables
 
-    public void updateProductTable() {
-        DefaultTableModel model = (DefaultTableModel) tblProducts.getModel();
-        model.setRowCount(0);
-
-        ProductDao productDao = new ProductDao();
-        List<Product> products = productDao.getAllProducts();
-
-        productIdMap.clear();
-        int rowIndex = 0;
-        for (Product product : products) {
-            Object[] row = {
-                product.getId(),
-                product.getName(),
-                product.getCategory().getTranslation(),
-                product.getUnitPrice(),
-                product.getUnitOfMeasure().getTranslation(),
-                product.getQuantity()
-            };
-            model.addRow(row);
-            productIdMap.put(rowIndex, product.getId());
-            rowIndex++;
-        }
+    public void updateCartTable() {
+        DefaultTableModel cartModel = cartService.getCartTableModel();
+        tblCart.setModel(cartModel);
     }
 
     @Override
     public void setVisible(boolean b) {
         if (!b) {
-            ProductDao productDao = new ProductDao();
-            Map<Integer, Integer> temporaryCart = DataManager.getInstance().getTemporaryCart();
-
-            for (Map.Entry<Integer, Integer> entry : temporaryCart.entrySet()) {
-                int productId = entry.getKey();
-                int quantity = entry.getValue();
-
-                Product product = productDao.getProductById(productId);
-                if (product != null) {
-                    product.setQuantity(product.getQuantity() + quantity);
-                    productDao.update(product);
-                }
-            }
-
-            DataManager.getInstance().clearTemporaryCart();
+            cartService.clearTemporaryCartAndRestoreStock();
         }
         super.setVisible(b);
         if (b) {
-            updateProductTable();
+            loadProductTable();
         }
     }
 
@@ -635,12 +512,9 @@ public class RegisterSale extends javax.swing.JFrame {
     }
 
     private void loadProductTable() {
-        ProductDao productDao = new ProductDao();
-        List<Product> productList = productDao.getAllProducts();
-
+        List<Product> productList = productService.getAllProducts();
         SwingUtilities.invokeLater(() -> {
-            ProductTableModel productTableModel = new ProductTableModel(productList);
-            tblProducts.setModel(productTableModel);
+            tblProducts.setModel(new ProductTableModel(productList));
         });
     }
 }
