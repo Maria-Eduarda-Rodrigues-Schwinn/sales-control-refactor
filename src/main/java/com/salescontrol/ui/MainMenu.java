@@ -1,9 +1,8 @@
 package com.salescontrol.ui;
 
-import com.salescontrol.ui.Login;
-import com.salescontrol.ui.EditProduct;
 import com.salescontrol.domain.User;
 import com.salescontrol.enuns.UserType;
+import javax.swing.SwingUtilities;
 
 public class MainMenu extends javax.swing.JFrame {
 
@@ -150,37 +149,47 @@ public class MainMenu extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnRegisterSaleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRegisterSaleActionPerformed
-        RegisterSale saleRegistrationScreen = new RegisterSale(currentUser);
-        saleRegistrationScreen.setVisible(true);
-        this.setVisible(false);
+        SwingUtilities.invokeLater(() -> {
+            new RegisterSale(currentUser).setVisible(true);
+            this.dispose();
+        });
     }//GEN-LAST:event_btnRegisterSaleActionPerformed
 
     private void btnRegisterProductActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRegisterProductActionPerformed
-        java.awt.EventQueue.invokeLater(() -> {
+        SwingUtilities.invokeLater(() -> {
             new RegisterProduct(currentUser).setVisible(true);
+            this.dispose();
         });
-        this.setVisible(false);
     }//GEN-LAST:event_btnRegisterProductActionPerformed
 
     private void btnEditProductActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditProductActionPerformed
-        EditProduct editProductScreen = new EditProduct(currentUser);
-        editProductScreen.setVisible(true);
-        this.setVisible(false);
+        SwingUtilities.invokeLater(() -> {
+            new EditProduct(currentUser).setVisible(true);
+            this.dispose();
+        });
     }//GEN-LAST:event_btnEditProductActionPerformed
 
     private void btnSalesReportActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSalesReportActionPerformed
-        java.awt.EventQueue.invokeLater(() -> {
+        SwingUtilities.invokeLater(() -> {
             new SalesReport(currentUser).setVisible(true);
+            this.dispose();
         });
-        this.setVisible(false);
     }//GEN-LAST:event_btnSalesReportActionPerformed
 
     private void btnLeaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLeaveActionPerformed
-        java.awt.EventQueue.invokeLater(() -> {
+        SwingUtilities.invokeLater(() -> {
             new Login().setVisible(true);
+            this.dispose();
         });
-        this.setVisible(false);
     }//GEN-LAST:event_btnLeaveActionPerformed
+
+    private void setPermissions() {
+        if (currentUser.getUserType() == UserType.EMPLOYEE) {
+            btnEditProduct.setEnabled(false);
+            btnRegisterProduct.setEnabled(false);
+            btnSalesReport.setEnabled(false);
+        }
+    }
 
     public static void main(String args[]) {
         try {
@@ -208,12 +217,4 @@ public class MainMenu extends javax.swing.JFrame {
     private javax.swing.JLabel lblLogo;
     private javax.swing.JPanel pnlMainMenu;
     // End of variables declaration//GEN-END:variables
-
-    private void setPermissions() {
-        if (currentUser.getUserType() == UserType.EMPLOYEE) {
-            btnEditProduct.setEnabled(false);
-            btnRegisterProduct.setEnabled(false);
-            btnSalesReport.setEnabled(false);
-        }
-    }
 }
