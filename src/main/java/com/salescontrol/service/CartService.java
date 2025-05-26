@@ -75,6 +75,10 @@ public class CartService {
                 productDao.update(product);
             }
         }
+        clearTemporaryCart();
+    }
+
+    public void clearTemporaryCart() {
         DataManager.getInstance().clearTemporaryCart();
     }
 
@@ -92,7 +96,7 @@ public class CartService {
         } else {
             cart.put(productId, currentQty - quantity);
         }
-        // Reintegra a quantidade removida ao estoque
+
         Product product = productDao.getProductById(productId);
         if (product != null) {
             product.setQuantity(product.getQuantity() + quantity);

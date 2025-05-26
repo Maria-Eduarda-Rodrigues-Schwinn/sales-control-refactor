@@ -400,7 +400,7 @@ public class RegisterSale extends javax.swing.JFrame {
             saleService.finalizeSale(cartService.getCartItems());
             JOptionPane.showMessageDialog(this, "Venda finalizada com sucesso!");
 
-            cartService.clearTemporaryCartAndRestoreStock();
+            cartService.clearTemporaryCart();
             updateCartTable();
             loadProductTable();
         } catch (Exception ex) {
@@ -495,11 +495,14 @@ public class RegisterSale extends javax.swing.JFrame {
     @Override
     public void setVisible(boolean b) {
         if (!b) {
-            cartService.clearTemporaryCartAndRestoreStock();
+            if (!cartService.isCartEmpty()) {
+                cartService.clearTemporaryCartAndRestoreStock();
+            }
         }
         super.setVisible(b);
         if (b) {
             loadProductTable();
+            updateCartTable();
         }
     }
 
